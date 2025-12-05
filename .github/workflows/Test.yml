@@ -2,10 +2,6 @@ name: "Test"
 
 on:
   pull_request:
-  push:
-    branches:
-      - main
-      - 'releases/*'
 
 # Avoid running the same workflow on the same branch concurrently
 concurrency:
@@ -21,47 +17,18 @@ jobs:
       # Checkout the repository with permission to push
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          # The default GITHUB_TOKEN doesn't have the necessary permissions
-          # so a custom token should be used here with sufficient access.
-          #
-          # Must have access to the project with at least Write role, and scopes
-          # including code, commit-statuses, pull-requests, workflows and actions.
-          #
-          token: ${{ secrets.DIFFBLUE_TOKEN }}
-
-      # Diffblue Cover requires the project to be built so that
-      # the class files can be analysed and tests created.
-
-      # This job configures Java so that the project can be built.
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: '8'
-          distribution: 'zulu'
-
-      # This job runs a Maven command to build the project.
-      - name: Maven Install
-        working-directory: ./test
-        run: mvn --batch-mode install
-
-      # # This job runs a Gradle command to build the project.
-      # - name: Gradle Build
-      #   working-directory: ./test
-      #   run: ./gradlew --console plain build
 
       # Run Diffblue Cover
       - name: Diffblue Cover
         uses: ./ # the latest version from the current repository
         env:
           JVM_ARGS: -Xmx4096m
-          GITHUB_PR_NUMBER: ${{ github.event.number }}
         with:
           # The access token used to push commits and call GitHub APIs.
           #
           # Must have access to the project with at least Write role, and scopes
           # including code, commit-statuses, pull-requests, workflows and actions.
-          access-token: ${{ secrets.DIFFBLUE_TOKEN }}
+          access-token: ${{ secrets.DIFFBLUE_ACCESS_TOKEN }}
 
           # License key used to activate the installation
           license-key: ${{ secrets.DIFFBLUE_LICENSE_KEY }}
